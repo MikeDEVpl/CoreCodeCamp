@@ -14,17 +14,16 @@ using System.Threading.Tasks;
 
 namespace CoreCodeCamp.Controllers
 {
-    [Route("api/[controller]")]   // [controller znaczy wszystko co jest przed słowem controller w nazwie (tutaj bedzie api/Camps)
-    [ApiVersion("1.0")]
-    [ApiVersion("1.1")]
-    [ApiController] // powoduje szukanie w body requestu przy post
-    public class CampsController : ControllerBase
+    [Route("api/camps")]   // (tutaj bedzie api/Camps)
+    [ApiVersion("2.0")] 
+     [ApiController] // powoduje szukanie w body requestu przy post
+    public class CampsController2 : ControllerBase
     {
         private readonly ICampRepository _repository;
         private readonly IMapper _mapper;
         private readonly LinkGenerator _linkGenerator;
 
-        public CampsController(ICampRepository repository, IMapper mapper, LinkGenerator linkGenerator)
+        public CampsController2(ICampRepository repository, IMapper mapper, LinkGenerator linkGenerator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -33,13 +32,17 @@ namespace CoreCodeCamp.Controllers
 
         [HttpGet]
         //gdy nie ma api version przy akcji to dziala ona dla kazdej wersji
-        public async Task<ActionResult<CampModel[]>> Get(bool includeTalks = false) //Gdy typ zwrotu Action Result sie zgadza zwroci 200 OK
+        public async Task<IActionResult> Get(bool includeTalks = false) //Gdy typ zwrotu Action Result sie zgadza zwroci 200 OK
         {
             try
             {
                 var results = await _repository.GetAllCampsAsync(includeTalks);
-
-                return _mapper.Map<CampModel[]>(results);
+                var result = new
+                {
+                    Count = results.Count(),
+                    Results = _mapper.Map<CampModel[]>(results)
+                };
+                return Ok(result);
 
             }
             catch (Exception)
@@ -49,7 +52,7 @@ namespace CoreCodeCamp.Controllers
         }
 
         [HttpGet("{moniker}")] //Rozszerza sciezke /api[controller]/
-        [MapToApiVersion("1.0")]
+
         public async Task<ActionResult<CampModel>> Get(string moniker)
         {
             try
@@ -67,7 +70,7 @@ namespace CoreCodeCamp.Controllers
 
 
         [HttpGet("{moniker}")] //Rozszerza sciezke /api[controller]/
-        [MapToApiVersion("1.1")]
+
         public async Task<ActionResult<CampModel>> Get11(string moniker)
         {
             try
